@@ -1,0 +1,45 @@
+name: Build Portable Application
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install PyQt5 PyQtWebEngine markdown pyinstaller
+        
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller --name="QtMarkdownEditor" \
+                   --windowed \
+                   --onefile \
+                   --add-data "images:images" \
+                   --add-data "settings.json:." \
+                   --add-data "wyw.ico:." \
+                   --icon=wyw.ico \
+                   app.py
+                   
+    - name: Create ZIP archive
+      run: |
+        cd dist
+        zip -r QtMarkdownEditor.zip QtMarkdownEditor
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: QtMarkdownEditor
+        path: dist/QtMarkdownEditor.zip 
